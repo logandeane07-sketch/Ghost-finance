@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ghost Finance">
+<meta name="theme-color" content="#0a0810">
+<title>Ghost Finance</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --void: #0a0810;
+    --deep: #100d1a;
+    --surface: #161220;
+    --card: #1e1830;
+    --border: #2a2240;
+    --ghost: #7c5cbf;
+    --phantom: #9b7de0;
+    --wisp: #b9a0f0;
+    --ectoplasm: #4fffb0;
+    --warning: #f0a04f;
+    --danger: #f05f5f;
+    --muted: #5a5070;
+    --text: #d4cce8;
+    --dim: #8a7fa0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--void);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+  }
+
+  /* Top bar */
+  .topbar {
+    background: var(--deep);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topbar h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    color: var(--wisp);
+  }
+
+  .topbar h1 span { color: var(--ectoplasm); }
+
+  .topbar .date {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--deep);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 12px 4px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .nav-btn .icon { font-size: 20px; }
+  .nav-btn.active { color: var(--phantom); }
+
+  /* Pages */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  /* Section label */
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    margin-top: 20px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+
+  /* Alert card */
+  .alert-card {
+    background: rgba(240,95,95,0.08);
+    border: 1px solid rgba(240,95,95,0.25);
+    border-left: 3px solid var(--danger);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .alert-card .alert-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--danger);
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  /* Budget bars */
+  .budget-item {
+    margin-bottom: 14px;
+  }
+  .budget-item:last-child { margin-bottom: 0; }
+
+  .budget-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .budget-name { font-size: 13px; font-weight: 500; }
+  .budget-nums {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .budget-nums span { color: var(--text); }
+
+  .track {
+    background: var(--border);
+    border-radius: 99px;
+    height: 7px;
+    overflow: hidden;
+  }
+
+  .fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease, background 0.3s;
+  }
+
+  /* Quick log buttons */
+  .log-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .log-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .log-btn:active { background: var(--card); border-color: var(--ghost); }
+  .log-btn .log-icon { font-size: 22px; margin-bottom: 4px; }
+  .log-btn .log-label { font-size: 11px; color: var(--dim); }
+
+  /* Input modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,8,16,0.85);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 36px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .modal-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--wisp);
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .modal input, .modal select, .modal textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    margin-bottom: 10px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .modal input:focus, .modal select:focus {
+    border-color: var(--phantom);
+  }
+
+  .modal select option { background: var(--surface); }
+
+  .modal-submit {
+    width: 100%;
+    background: var(--ghost);
+    border: none;
+    border-radius: 10px;
+    padding: 16px;
+    color: white;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .modal-submit:active { opacity: 0.85; }
+
+  /* Log feed */
+  .log-feed { }
+
+  .log-entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(42,34,64,0.5);
+    font-size: 13px;
+  }
+
+  .log-entry:last-child { border-bottom: none; }
+
+  .log-entry .entry-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .log-entry .entry-info { flex: 1; }
+  .log-entry .entry-name { font-weight: 500; color: var(--text); }
+  .log-entry .entry-meta { font-size: 11px; color: var(--dim); font-family: 'Space Mono', monospace; margin-top: 2px; }
+  .log-entry .entry-amount { font-family: 'Space Mono', monospace; font-weight: 700; }
+  .log-entry .entry-amount.spend { color: var(--warning); }
+  .log-entry .entry-amount.win { color: var(--ectoplasm); }
+  .log-entry .entry-amount.debt { color: var(--danger); }
+  .log-entry .entry-amount.save { color: var(--phantom); }
+
+  /* Wishlist */
+  .wish-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(42,34,64,0.5);
+    gap: 10px;
+  }
+
+  .wish-item:last-child { border-bottom: none; }
+  .wish-item .wish-info { flex: 1; }
+  .wish-item .wish-name { font-size: 13px; font-weight: 500; }
+  .wish-item .wish-meta { font-size: 11px; color: var(--dim); font-family: 'Space Mono', monospace; margin-top: 2px; }
+
+  .wish-days {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .wish-days.waiting { background: rgba(124,92,191,0.15); color: var(--phantom); }
+  .wish-days.earned { background: rgba(79,255,176,0.12); color: var(--ectoplasm); }
+
+  .wish-price {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--warning);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Car fund progress */
+  .big-number {
+    font-family: 'Space Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--ectoplasm);
+    line-height: 1;
+  }
+
+  .big-sub {
+    font-size: 12px;
+    color: var(--dim);
+    margin-top: 4px;
+    margin-bottom: 16px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(42,34,64,0.4);
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--dim); }
+  .stat-val { font-family: 'Space Mono', monospace; font-weight: 600; }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--muted);
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+  }
+  .empty .empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* Delete btn */
+  .del-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+  .del-btn:active { color: var(--danger); }
+
+  .dopamine-rule {
+    background: rgba(124,92,191,0.08);
+    border: 1px solid rgba(124,92,191,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--dim);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .dopamine-rule strong { color: var(--phantom); display: block; margin-bottom: 2px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <h1>👻 Ghost <span>Finance</span></h1>
+  <div class="date" id="topDate">—</div>
+</div>
+
+<!-- Pages -->
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+
+  <div class="alert-card">
+    <div class="alert-label">⚠ PRIORITY #1</div>
+    Mortgage is behind. Every extra dollar goes here first.
+  </div>
+
+  <div class="section-label">Budgets This Month</div>
+
+  <div class="card">
+    <div class="budget-item">
+      <div class="budget-meta">
+        <span class="budget-name">🛒 Groceries</span>
+        <span class="budget-nums"><span id="groc-spent">$0</span> / $275</span>
+      </div>
+      <div class="track"><div class="fill" id="groc-bar" style="width:0%;background:var(--phantom)"></div></div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-meta">
+        <span class="budget-name">🍔 Eating Out</span>
+        <span class="budget-nums"><span id="eat-spent">$0</span> / $150</span>
+      </div>
+      <div class="track"><div class="fill" id="eat-bar" style="width:0%;background:var(--phantom)"></div></div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-meta">
+        <span class="budget-name">🎮 Games / DLC</span>
+        <span class="budget-nums"><span id="game-spent">$0</span> / $30</span>
+      </div>
+      <div class="track"><div class="fill" id="game-bar" style="width:0%;background:var(--phantom)"></div></div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-meta">
+        <span class="budget-name">🖊️ Art / Journal</span>
+        <span class="budget-nums"><span id="art-spent">$0</span> / $25</span>
+      </div>
+      <div class="track"><div class="fill" id="art-bar" style="width:0%;background:var(--phantom)"></div></div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-meta">
+        <span class="budget-name">⚙️ Tech & Gear</span>
+        <span class="budget-nums"><span id="tech-spent">$0</span> / $40</span>
+      </div>
+      <div class="track"><div class="fill" id="tech-bar" style="width:0%;background:var(--phantom)"></div></div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-meta">
+        <span class="budget-name">📦 Impulse Amazon</span>
+        <span class="budget-nums"><span id="amz-spent">$0</span> / $30</span>
+      </div>
+      <div class="track"><div class="fill" id="amz-bar" style="width:0%;background:var(--phantom)"></div></div>
+    </div>
+  </div>
+
+  <div class="section-label">Ghost Ride Fund</div>
+  <div class="card" style="background:linear-gradient(135deg,rgba(79,255,176,0.05),rgba(124,92,191,0.05));border-color:rgba(79,255,176,0.15)">
+    <div class="big-number" id="home-car-saved">$400</div>
+    <div class="big-sub" id="home-car-sub">of $5,000 goal · <span id="home-car-pct">8%</span></div>
+    <div class="track" style="height:10px;">
+      <div class="fill" id="home-car-bar" style="width:8%;background:linear-gradient(90deg,var(--ghost),var(--ectoplasm))"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LOG -->
+<div class="page" id="page-log">
+
+  <div class="section-label">Quick Log</div>
+
+  <div class="log-grid">
+    <div class="log-btn" onclick="openModal('spend')">
+      <div class="log-icon">💸</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Log Spend</div>
+      <div class="log-label">track a purchase</div>
+    </div>
+    <div class="log-btn" onclick="openModal('debt')">
+      <div class="log-icon">🔴</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Debt Payment</div>
+      <div class="log-label">avalanche a debt</div>
+    </div>
+    <div class="log-btn" onclick="openModal('save')">
+      <div class="log-icon">👻</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Car Fund</div>
+      <div class="log-label">log a deposit</div>
+    </div>
+    <div class="log-btn" onclick="openModal('win')">
+      <div class="log-icon">⚡</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Log a Win</div>
+      <div class="log-label">celebrate progress</div>
+    </div>
+  </div>
+
+  <div class="section-label">Recent Activity</div>
+  <div class="card">
+    <div class="log-feed" id="log-feed">
+      <div class="empty"><div class="empty-icon">👻</div>No entries yet.<br>Tap a button above to start.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- WISHLIST -->
+<div class="page" id="page-wish">
+
+  <div class="dopamine-rule">
+    <strong>👻 The 30-Day Hold Rule</strong>
+    Want something? Add it here. Wait 30 days. Still want it and budget has room? You earned it. Most cravings fall off on their own.
+  </div>
+
+  <div style="margin-bottom:10px;">
+    <div class="log-btn" onclick="openModal('wish')" style="text-align:left;display:flex;align-items:center;gap:12px;padding:14px;">
+      <div style="font-size:22px;">✨</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">Add to Wishlist</div>
+        <div class="log-label">don't buy it — list it</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">On the List</div>
+  <div class="card">
+    <div id="wish-list">
+      <div class="empty"><div class="empty-icon">✨</div>Nothing on the wishlist.<br>Feel an urge? Add it here instead of buying it.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DEBTS -->
+<div class="page" id="page-debts">
+
+  <div class="section-label">Avalanche Order</div>
+
+  <div class="card">
+    <div id="debt-list">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+
+  <div class="section-label">Car Fund Detail</div>
+  <div class="card" style="background:linear-gradient(135deg,rgba(79,255,176,0.05),rgba(124,92,191,0.05));border-color:rgba(79,255,176,0.15)">
+    <div id="car-stats"></div>
+  </div>
+
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-title-text">Log Entry</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showPage('home',this)">
+    <span class="icon">👁️</span>Overview
+  </button>
+  <button class="nav-btn" onclick="showPage('log',this)">
+    <span class="icon">✏️</span>Log
+  </button>
+  <button class="nav-btn" onclick="showPage('wish',this)">
+    <span class="icon">✨</span>Wishlist
+  </button>
+  <button class="nav-btn" onclick="showPage('debts',this)">
+    <span class="icon">💀</span>Debts
+  </button>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+const DEFAULT_STATE = {
+  budgets: {
+    groc: { label: '🛒 Groceries', max: 275, spent: 0 },
+    eat:  { label: '🍔 Eating Out', max: 150, spent: 0 },
+    game: { label: '🎮 Games / DLC', max: 30, spent: 0 },
+    art:  { label: '🖊️ Art / Journal', max: 25, spent: 0 },
+    tech: { label: '⚙️ Tech & Gear', max: 40, spent: 0 },
+    amz:  { label: '📦 Impulse Amazon', max: 30, spent: 0 },
+  },
+  debts: [
+    { name: 'Avant', balance: 123, apr: '35.99%', min: 25, priority: 1 },
+    { name: 'Affirm Samsung', balance: 170, apr: '34.98%', min: 21.30, priority: 2 },
+    { name: 'Credit One', balance: 216, apr: '29.74%', min: 25, priority: 3, note: 'close after payoff' },
+    { name: 'Klarna', balance: 90, apr: '0%', min: 24, priority: 4 },
+    { name: 'Affirm Amazon', balance: 137, apr: '0%', min: 46, priority: 5 },
+  ],
+  carSaved: 400,
+  carTarget: 5000,
+  log: [],
+  wishlist: [],
+};
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('ghostFinance');
+    return s ? JSON.parse(s) : JSON.parse(JSON.stringify(DEFAULT_STATE));
+  } catch { return JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+}
+
+function saveState() {
+  localStorage.setItem('ghostFinance', JSON.stringify(state));
+}
+
+let state = loadState();
+
+// ── DATE ──────────────────────────────────────────────
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const now = new Date();
+document.getElementById('topDate').textContent = months[now.getMonth()] + ' ' + now.getDate();
+
+// ── NAV ───────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'debts') renderDebts();
+  if (id === 'home') renderHome();
+  if (id === 'wish') renderWishlist();
+  if (id === 'log') renderLog();
+}
+
+// ── RENDER HOME ───────────────────────────────────────
+function renderHome() {
+  const cats = ['groc','eat','game','art','tech','amz'];
+  cats.forEach(k => {
+    const b = state.budgets[k];
+    const pct = Math.min((b.spent / b.max) * 100, 100);
+    const el = document.getElementById(k + '-spent');
+    const bar = document.getElementById(k + '-bar');
+    if (el) el.textContent = '$' + b.spent.toFixed(0);
+    if (bar) {
+      bar.style.width = pct + '%';
+      bar.style.background = pct >= 100 ? 'var(--danger)' : pct >= 80 ? 'var(--warning)' : 'var(--phantom)';
+    }
+  });
+
+  const pct = Math.min((state.carSaved / state.carTarget) * 100, 100);
+  document.getElementById('home-car-saved').textContent = '$' + state.carSaved.toLocaleString();
+  document.getElementById('home-car-pct').textContent = Math.round(pct) + '%';
+  document.getElementById('home-car-bar').style.width = pct + '%';
+
+  const target = new Date(2026, 2, 1);
+  const msLeft = target - new Date();
+  const mLeft = Math.max(Math.ceil(msLeft / (1000*60*60*24*30.5)), 1);
+  const needed = Math.max((state.carTarget - state.carSaved) / mLeft, 0);
+  document.getElementById('home-car-sub').innerHTML = `of $${state.carTarget.toLocaleString()} goal · ${Math.round(pct)}% · $${Math.round(needed)}/mo needed`;
+}
+
+// ── RENDER DEBTS ──────────────────────────────────────
+function renderDebts() {
+  const total = state.debts.reduce((a, d) => a + d.balance, 0);
+  const pColors = { 1: 'var(--danger)', 2: 'var(--danger)', 3: 'var(--warning)', 4: 'var(--ectoplasm)', 5: 'var(--ectoplasm)' };
+
+  let html = state.debts.map((d, i) => `
+    <div class="stat-row" style="flex-direction:column;gap:6px;align-items:stretch;padding:12px 0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-size:13px;font-weight:600;color:var(--text);">${d.name}</span>
+          <span style="font-size:10px;font-family:'Space Mono',monospace;margin-left:6px;color:${pColors[d.priority]};">#${d.priority}</span>
+          ${d.note ? `<div style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;">${d.note}</div>` : ''}
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Space Mono',monospace;font-weight:700;color:var(--warning);">$${d.balance.toFixed(2)}</div>
+          <div style="font-size:10px;color:var(--dim);font-family:'Space Mono',monospace;">${d.apr} · $${d.min}/mo min</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input type="number" placeholder="Extra payment $" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;" id="extra-${i}">
+        <button onclick="applyPayment(${i})" style="background:var(--ghost);border:none;border-radius:8px;padding:8px 14px;color:white;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">PAY</button>
+      </div>
+    </div>
+  `).join('<hr style="border:none;border-top:1px solid var(--border);">');
+
+  html += `<div style="padding-top:10px;font-family:'Space Mono',monospace;font-size:12px;color:var(--dim);border-top:1px solid var(--border);margin-top:4px;">Total remaining: <span style="color:var(--warning);">$${total.toFixed(2)}</span></div>`;
+
+  document.getElementById('debt-list').innerHTML = html;
+
+  // Car stats
+  const target = new Date(2026, 2, 1);
+  const msLeft = target - new Date();
+  const mLeft = Math.max(Math.ceil(msLeft / (1000*60*60*24*30.5)), 1);
+  const needed = Math.max((state.carTarget - state.carSaved) / mLeft, 0);
+  const pct = Math.min((state.carSaved / state.carTarget) * 100, 100);
+
+  document.getElementById('car-stats').innerHTML = `
+    <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:var(--ectoplasm);margin-bottom:4px;">$${state.carSaved.toLocaleString()}</div>
+    <div style="font-size:12px;color:var(--dim);margin-bottom:14px;">saved toward $${state.carTarget.toLocaleString()} goal</div>
+    <div class="track" style="height:10px;margin-bottom:14px;"><div class="fill" style="width:${pct}%;background:linear-gradient(90deg,var(--ghost),var(--ectoplasm));"></div></div>
+    <div class="stat-row"><span class="stat-label">Progress</span><span class="stat-val" style="color:var(--ectoplasm);">${Math.round(pct)}%</span></div>
+    <div class="stat-row"><span class="stat-label">Months to March 2026</span><span class="stat-val">${mLeft}</span></div>
+    <div class="stat-row"><span class="stat-label">Needed per month</span><span class="stat-val" style="color:var(--phantom);">$${Math.round(needed)}</span></div>
+    <div class="stat-row"><span class="stat-label">Remaining gap</span><span class="stat-val" style="color:var(--warning);">$${(state.carTarget - state.carSaved).toLocaleString()}</span></div>
+  `;
+}
+
+function applyPayment(i) {
+  const input = document.getElementById('extra-' + i);
+  const amt = parseFloat(input.value);
+  if (!amt || amt <= 0) return;
+  state.debts[i].balance = Math.max(state.debts[i].balance - amt, 0);
+  state.log.unshift({ type: 'debt', icon: '🔴', name: `Paid ${state.debts[i].name}`, amount: amt, date: todayStr() });
+  input.value = '';
+  saveState();
+  renderDebts();
+}
+
+// ── RENDER LOG ────────────────────────────────────────
+function renderLog() {
+  const feed = document.getElementById('log-feed');
+  if (!state.log.length) {
+    feed.innerHTML = '<div class="empty"><div class="empty-icon">👻</div>No entries yet.<br>Tap a button above to start.</div>';
+    return;
+  }
+  feed.innerHTML = state.log.slice(0, 30).map((e, i) => `
+    <div class="log-entry">
+      <div class="entry-icon">${e.icon}</div>
+      <div class="entry-info">
+        <div class="entry-name">${e.name}</div>
+        <div class="entry-meta">${e.date}${e.category ? ' · ' + e.category : ''}</div>
+      </div>
+      <div class="entry-amount ${e.type}">$${parseFloat(e.amount).toFixed(2)}</div>
+      <button class="del-btn" onclick="deleteLog(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function deleteLog(i) {
+  // Reverse budget if spend entry
+  const e = state.log[i];
+  if (e.type === 'spend' && e.budgetKey && state.budgets[e.budgetKey]) {
+    state.budgets[e.budgetKey].spent = Math.max(state.budgets[e.budgetKey].spent - parseFloat(e.amount), 0);
+  }
+  if (e.type === 'save') {
+    state.carSaved = Math.max(state.carSaved - parseFloat(e.amount), 0);
+  }
+  state.log.splice(i, 1);
+  saveState();
+  renderLog();
+  renderHome();
+}
+
+// ── RENDER WISHLIST ───────────────────────────────────
+function renderWishlist() {
+  const list = document.getElementById('wish-list');
+  const active = state.wishlist.filter(w => !w.purchased);
+  if (!active.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">✨</div>Nothing on the wishlist.<br>Feel an urge? Add it here instead of buying it.</div>';
+    return;
+  }
+  list.innerHTML = active.map((w, i) => {
+    const added = new Date(w.date);
+    const days = Math.floor((new Date() - added) / (1000*60*60*24));
+    const earned = days >= 30;
+    return `
+      <div class="wish-item">
+        <div class="wish-info">
+          <div class="wish-name">${w.name}</div>
+          <div class="wish-meta">Added ${w.date}${w.category ? ' · ' + w.category : ''}</div>
+        </div>
+        <div class="wish-price">$${parseFloat(w.price).toFixed(0)}</div>
+        <div class="wish-days ${earned ? 'earned' : 'waiting'}">${earned ? '✅ earned' : days + 'd / 30'}</div>
+        <button class="del-btn" onclick="deleteWish(${i})">✕</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteWish(i) {
+  state.wishlist.splice(i, 1);
+  saveState();
+  renderWishlist();
+}
+
+// ── MODALS ────────────────────────────────────────────
+const budgetKeys = [
+  { key: 'groc', label: '🛒 Groceries' },
+  { key: 'eat',  label: '🍔 Eating Out' },
+  { key: 'game', label: '🎮 Games / DLC' },
+  { key: 'art',  label: '🖊️ Art / Journal' },
+  { key: 'tech', label: '⚙️ Tech & Gear' },
+  { key: 'amz',  label: '📦 Impulse Amazon' },
+];
+
+const debtNames = ['Avant','Affirm Samsung','Credit One','Klarna','Affirm Amazon'];
+
+let currentModal = null;
+
+function openModal(type) {
+  currentModal = type;
+  const overlay = document.getElementById('modal');
+  const title = document.getElementById('modal-title-text');
+  const body = document.getElementById('modal-body');
+
+  if (type === 'spend') {
+    title.textContent = '💸 Log a Purchase';
+    body.innerHTML = `
+      <input type="number" id="m-amount" placeholder="Amount ($)" inputmode="decimal">
+      <input type="text" id="m-name" placeholder="What did you buy?">
+      <select id="m-cat">
+        <option value="">Select category</option>
+        ${budgetKeys.map(b => `<option value="${b.key}">${b.label}</option>`).join('')}
+        <option value="other">Other</option>
+      </select>
+      <button class="modal-submit" onclick="submitSpend()">LOG IT</button>
+    `;
+  } else if (type === 'debt') {
+    title.textContent = '🔴 Log Debt Payment';
+    body.innerHTML = `
+      <select id="m-debt">
+        <option value="">Which debt?</option>
+        ${state.debts.map((d,i) => `<option value="${i}">${d.name} ($${d.balance.toFixed(2)} left)</option>`).join('')}
+      </select>
+      <input type="number" id="m-amount" placeholder="Amount paid ($)" inputmode="decimal">
+      <button class="modal-submit" onclick="submitDebt()">LOG PAYMENT</button>
+    `;
+  } else if (type === 'save') {
+    title.textContent = '👻 Car Fund Deposit';
+    body.innerHTML = `
+      <input type="number" id="m-amount" placeholder="Amount deposited ($)" inputmode="decimal">
+      <input type="text" id="m-note" placeholder="Note (optional)">
+      <button class="modal-submit" onclick="submitSave()">LOG DEPOSIT</button>
+    `;
+  } else if (type === 'win') {
+    title.textContent = '⚡ Log a Win';
+    body.innerHTML = `
+      <input type="text" id="m-win" placeholder="What did you do well?">
+      <button class="modal-submit" onclick="submitWin()">LOCK IT IN</button>
+    `;
+  } else if (type === 'wish') {
+    title.textContent = '✨ Add to Wishlist';
+    body.innerHTML = `
+      <input type="text" id="m-wish-name" placeholder="What do you want?">
+      <input type="number" id="m-wish-price" placeholder="Price ($)" inputmode="decimal">
+      <select id="m-wish-cat">
+        <option value="">Category (optional)</option>
+        ${budgetKeys.map(b => `<option value="${b.label}">${b.label}</option>`).join('')}
+      </select>
+      <button class="modal-submit" onclick="submitWish()">ADD TO LIST</button>
+    `;
+  }
+
+  overlay.classList.add('open');
+  setTimeout(() => {
+    const first = body.querySelector('input,select');
+    if (first && type !== 'wish') first.focus();
+  }, 100);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  currentModal = null;
+}
+
+function todayStr() {
+  return months[now.getMonth()] + ' ' + now.getDate();
+}
+
+function submitSpend() {
+  const amt = parseFloat(document.getElementById('m-amount').value);
+  const name = document.getElementById('m-name').value.trim() || 'Purchase';
+  const cat = document.getElementById('m-cat').value;
+  if (!amt || amt <= 0) return;
+
+  if (cat && cat !== 'other' && state.budgets[cat]) {
+    state.budgets[cat].spent += amt;
+  }
+
+  const catLabel = cat && cat !== 'other' ? budgetKeys.find(b => b.key === cat)?.label : 'Other';
+  state.log.unshift({ type: 'spend', icon: '💸', name, amount: amt, category: catLabel, budgetKey: cat, date: todayStr() });
+  saveState();
+  closeModal();
+  renderHome();
+  renderLog();
+}
+
+function submitDebt() {
+  const idx = parseInt(document.getElementById('m-debt').value);
+  const amt = parseFloat(document.getElementById('m-amount').value);
+  if (isNaN(idx) || !amt || amt <= 0) return;
+  state.debts[idx].balance = Math.max(state.debts[idx].balance - amt, 0);
+  state.log.unshift({ type: 'debt', icon: '🔴', name: `Paid ${state.debts[idx].name}`, amount: amt, date: todayStr() });
+  saveState();
+  closeModal();
+  renderLog();
+}
+
+function submitSave() {
+  const amt = parseFloat(document.getElementById('m-amount').value);
+  const note = document.getElementById('m-note').value.trim();
+  if (!amt || amt <= 0) return;
+  state.carSaved += amt;
+  state.log.unshift({ type: 'save', icon: '👻', name: 'Ghost Ride Fund deposit' + (note ? ` · ${note}` : ''), amount: amt, date: todayStr() });
+  saveState();
+  closeModal();
+  renderHome();
+  renderLog();
+}
+
+function submitWin() {
+  const win = document.getElementById('m-win').value.trim();
+  if (!win) return;
+  state.log.unshift({ type: 'win', icon: '⚡', name: win, amount: 0, date: todayStr() });
+  saveState();
+  closeModal();
+  renderLog();
+}
+
+function submitWish() {
+  const name = document.getElementById('m-wish-name').value.trim();
+  const price = parseFloat(document.getElementById('m-wish-price').value) || 0;
+  const cat = document.getElementById('m-wish-cat').value;
+  if (!name) return;
+  state.wishlist.push({ name, price, category: cat, date: todayStr(), purchased: false });
+  saveState();
+  closeModal();
+  renderWishlist();
+}
+
+// Close modal on overlay tap
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── INIT ──────────────────────────────────────────────
+renderHome();
+</script>
+</body>
+</html>
